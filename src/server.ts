@@ -153,14 +153,19 @@ Example: "design a logo, then make mockups"
   or "Ready to create extensions from one of these?"
 
 ### referenceImages rules:
-- Only public URLs (http/https) — NOT local file paths or base64
-- Valid sources: gallery URLs, previous generation URLs, or URLs from upload_reference_image
-- If user wants to use a local image, call upload_reference_image(filePath) to
-  compress and upload it, then use the returned URL as referenceImages
+- For MeiGen and OpenAI-compatible APIs: public URLs (http/https) only
+- For ComfyUI: also accepts local file paths directly (no upload needed)
+- Valid sources: gallery URLs, previous generation URLs, URLs from upload_reference_image,
+  or local file paths (ComfyUI only)
+- If user wants to use a local image with MeiGen/OpenAI-compatible providers, call
+  upload_reference_image(filePath) to compress and upload it, then use the returned URL
+- Note: URLs from upload_reference_image expire in 24 hours — re-upload if needed later
+- If user is using ComfyUI and has a local image, pass the file path directly
+  to referenceImages — no upload_reference_image call needed
 - Works with ALL providers:
-  - MeiGen: full support (native)
-  - OpenAI: gpt-image-1.5 supports image input (DALL-E does not)
-  - ComfyUI: requires a LoadImage node in the workflow (e.g., img2img workflows)
+  - MeiGen: full support (native, URLs only)
+  - OpenAI-compatible: most models support image input via URLs (depends on your model/provider)
+  - ComfyUI: requires a LoadImage node in the workflow (URLs or local file paths)
 
 ## Phase 4: Error Recovery
 
@@ -196,7 +201,7 @@ export function createServer() {
   const apiClient = new MeiGenApiClient(config)
 
   const server = new McpServer(
-    { name: 'meigen', version: '1.2.4' },
+    { name: 'meigen', version: '1.2.5' },
     { instructions: SERVER_INSTRUCTIONS },
   )
 

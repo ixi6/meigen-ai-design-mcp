@@ -18,7 +18,7 @@ export const uploadReferenceImageSchema = {
 export function registerUploadReferenceImage(server: McpServer, config: MeiGenConfig) {
   server.tool(
     'upload_reference_image',
-    'Upload a local image for use as a reference in generate_image. Compresses large images (max 2MB, max 2048px) and returns a public URL. Call this when the user wants to use a local file as a reference image.',
+    'Upload a local image for use as a reference in generate_image. Image generation APIs require reference images as public URLs — this tool converts local files to URLs by compressing (max 2MB, max 2048px) and uploading to temporary cloud storage. The URL expires in 24 hours; re-upload if needed later. For ComfyUI users: you can pass local file paths directly to generate_image\'s referenceImages without uploading.',
     uploadReferenceImageSchema,
     { readOnlyHint: false, destructiveHint: true },
     async ({ filePath }) => {
@@ -52,6 +52,8 @@ export function registerUploadReferenceImage(server: McpServer, config: MeiGenCo
               ``,
               `Use this URL in generate_image's referenceImages parameter:`,
               `generate_image(prompt="...", referenceImages=["${result.publicUrl}"])`,
+              ``,
+              `Note: This URL expires in 24 hours. Re-upload if needed later.`,
             ].join('\n'),
           }],
         }

@@ -341,18 +341,31 @@ export class ComfyUIProvider {
       if (nodes.loadImages?.length) {
         const count = Math.min(options.referenceImages.length, nodes.loadImages.length)
         for (let i = 0; i < count; i++) {
-          const url = options.referenceImages[i]
+          const source = options.referenceImages[i]
           const nodeId = nodes.loadImages[i]
 
-          // Download the image from URL
-          const imgRes = await fetch(url)
-          if (!imgRes.ok) {
-            throw new Error(`Failed to download reference image from ${url}: ${imgRes.status}`)
+          let imgBuffer: Buffer
+          let ext: string
+
+          if (source.startsWith('http://') || source.startsWith('https://')) {
+            // Remote URL: download first
+            const imgRes = await fetch(source)
+            if (!imgRes.ok) {
+              throw new Error(`Failed to download reference image from ${source}: ${imgRes.status}`)
+            }
+            imgBuffer = Buffer.from(await imgRes.arrayBuffer())
+            ext = source.match(/\.(jpe?g|png|webp|gif)(\?|$)/i)?.[1] || 'png'
+          } else {
+            // Local file path: read directly (skip R2 roundtrip)
+            const localPath = source.startsWith('file://') ? source.slice(7) : source
+            if (!existsSync(localPath)) {
+              throw new Error(`Local reference image not found: ${localPath}`)
+            }
+            imgBuffer = readFileSync(localPath)
+            ext = basename(localPath).match(/\.(jpe?g|png|webp|gif)$/i)?.[1] || 'png'
           }
-          const imgBuffer = Buffer.from(await imgRes.arrayBuffer())
 
           // Upload to ComfyUI's input directory
-          const ext = url.match(/\.(jpe?g|png|webp|gif)(\?|$)/i)?.[1] || 'png'
           const filename = `ref_${Date.now()}_${i}.${ext}`
           const uploadedName = await this.uploadImage(imgBuffer, filename)
 

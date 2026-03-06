@@ -20,6 +20,55 @@ const MIME_MAP: Record<string, string> = {
   '.gif': 'image/gif',
 }
 
+/** Magic bytes signatures for supported image formats */
+const MAGIC_BYTES: Array<{ mime: string; bytes: number[]; offset?: number }> = [
+  { mime: 'image/jpeg', bytes: [0xFF, 0xD8, 0xFF] },
+  { mime: 'image/png', bytes: [0x89, 0x50, 0x4E, 0x47] },
+  { mime: 'image/gif', bytes: [0x47, 0x49, 0x46, 0x38] },
+  // WebP: starts with RIFF....WEBP
+  { mime: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46] },
+]
+
+/** Validate that file content matches its declared MIME type via magic bytes */
+function validateMagicBytes(buffer: Buffer, declaredMime: string): void {
+  if (buffer.length < 12) {
+    throw new Error('File too small to be a valid image')
+  }
+
+  const matched = MAGIC_BYTES.find(sig => {
+    const offset = sig.offset || 0
+    return sig.bytes.every((b, i) => buffer[offset + i] === b)
+  })
+
+  if (!matched) {
+    throw new Error('File content does not match any supported image format. The file may be corrupted or not a real image.')
+  }
+
+  // WebP needs additional check: bytes 8-11 should be "WEBP"
+  if (matched.mime === 'image/webp') {
+    const webpTag = buffer.slice(8, 12).toString('ascii')
+    if (webpTag !== 'WEBP') {
+      // It's a RIFF file but not WebP — could be AVI, WAV, etc.
+      if (declaredMime === 'image/webp') {
+        throw new Error('File has RIFF header but is not a WebP image')
+      }
+      // Not WebP, check if it matches declared type via other signatures
+      const actualMatch = MAGIC_BYTES.find(sig =>
+        sig.mime !== 'image/webp' && sig.bytes.every((b, i) => buffer[i] === b)
+      )
+      if (!actualMatch || actualMatch.mime !== declaredMime) {
+        throw new Error(`File content does not match declared type ${declaredMime}`)
+      }
+      return
+    }
+  }
+
+  // For non-WebP RIFF matches, verify declared type matches detected type
+  if (matched.mime !== declaredMime && !(matched.mime === 'image/webp' && declaredMime === 'image/webp')) {
+    throw new Error(`File extension suggests ${declaredMime} but content is ${matched.mime}`)
+  }
+}
+
 interface PresignResponse {
   success: boolean
   error?: string
@@ -156,6 +205,9 @@ export async function processAndUploadImage(
   if (!mimeType) {
     throw new Error(`Unsupported image format: ${ext}. Supported: JPEG, PNG, WebP, GIF`)
   }
+
+  // Validate file content matches declared type
+  validateMagicBytes(originalBuffer, mimeType)
 
   // Compress
   const compressed = await compressImage(originalBuffer, mimeType)

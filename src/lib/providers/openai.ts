@@ -35,8 +35,8 @@ export class OpenAIProvider implements ImageProvider {
       size: request.size || '1024x1024',
     }
 
-    // gpt-image series returns base64 by default, no need for response_format
-    // DALL-E series requires explicit response_format
+    // Some models (e.g., DALL-E) require explicit response_format for base64 output.
+    // Most OpenAI-compatible APIs return base64 by default — only add when needed.
     if (model.startsWith('dall-e')) {
       body.response_format = 'b64_json'
     }
@@ -45,8 +45,9 @@ export class OpenAIProvider implements ImageProvider {
       body.quality = request.quality
     }
 
-    // gpt-image-1.5 supports reference images via the image parameter
-    // DALL-E series does not support image input in the generations endpoint
+    // Pass reference images if provided. Most OpenAI-compatible models that
+    // support image input accept an `image` array in the request body.
+    // Known exception: DALL-E series does not support image input.
     if (request.referenceImages?.length && !model.startsWith('dall-e')) {
       body.image = request.referenceImages
     }
@@ -62,7 +63,7 @@ export class OpenAIProvider implements ImageProvider {
 
     if (!res.ok) {
       const errorText = await res.text()
-      throw new Error(`OpenAI API error ${res.status}: ${errorText}`)
+      throw new Error(`API error ${res.status}: ${errorText}`)
     }
 
     const json = await res.json() as OpenAIImageResponse

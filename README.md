@@ -244,7 +244,7 @@ Bring your own API key for OpenAI (gpt-image-1.5), Together AI, Fireworks AI, or
 }
 ```
 
-> All three providers support **reference images**. MeiGen and OpenAI accept URLs directly; ComfyUI injects them into LoadImage nodes in your workflow.
+> All three providers support **reference images**. MeiGen and OpenAI-compatible APIs accept URLs directly; ComfyUI accepts both URLs and local file paths, injecting them into LoadImage nodes in your workflow.
 
 ---
 
@@ -283,10 +283,24 @@ MeiGen MCP respects your privacy. Here's what happens with your data:
 - **ComfyUI (local)** — All processing stays on your machine. No data is sent externally.
 - **MeiGen Cloud** — Prompts and reference images are sent to `api.meigen.ai` for generation. Generated images are stored temporarily on Cloudflare R2. See [meigen.ai/privacy](https://www.meigen.ai/privacy).
 - **OpenAI-compatible** — Prompts and reference images are sent to the configured API endpoint. See your provider's privacy policy.
-- **Reference image upload** — Images are compressed locally (max 2MB) and uploaded to Cloudflare R2 via `gen.meigen.ai`. No authentication required.
+- **Reference image upload** — Images are compressed locally (max 2MB) and uploaded to Cloudflare R2 via `gen.meigen.ai`. Uploaded images expire automatically after **24 hours**. No authentication required. ComfyUI users can skip uploading entirely by passing local file paths directly.
 - **Gallery search & prompt enhancement** — Run locally against bundled data. No external API calls.
 
 No telemetry, analytics, or tracking of any kind.
+
+### Custom Storage Backend
+
+If you prefer to use your own S3/R2 bucket for reference image uploads, set the `UPLOAD_GATEWAY_URL` environment variable or `uploadGatewayUrl` in `~/.config/meigen/config.json` to point to your own presign endpoint. The endpoint must implement:
+
+```
+POST /upload/presign
+Content-Type: application/json
+
+Request:  { "filename": "photo.jpg", "contentType": "image/jpeg", "size": 123456 }
+Response: { "success": true, "presignedUrl": "https://...", "publicUrl": "https://..." }
+```
+
+The `presignedUrl` is used for a `PUT` upload, and `publicUrl` is the publicly accessible URL returned to the user.
 
 ---
 

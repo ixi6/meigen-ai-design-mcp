@@ -1,9 +1,9 @@
 ---
-name: "AI Image Generator & Editor — Nanobanana, GPT Image, ComfyUI"
+name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
 description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.11
+version: 1.0.13
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
-metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"],"env":["MEIGEN_API_TOKEN"]}}}
+metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
 
 # Creative Toolkit
@@ -19,29 +19,28 @@ Add the MCP server to your mcporter config (`~/.config/mcporter/config.json`):
   "mcpServers": {
     "creative-toolkit": {
       "command": "npx",
-      "args": ["-y", "meigen@1.2.5"],
-      "env": {
-        "MEIGEN_API_TOKEN": "${MEIGEN_API_TOKEN}"
-      }
+      "args": ["-y", "meigen@1.2.5"]
     }
   }
 }
 ```
 
-Set your API token in `~/.clawdbot/.env` or shell environment:
-
-```bash
-export MEIGEN_API_TOKEN="meigen_sk_..."
-```
-
-Get a token at [meigen.ai](https://www.meigen.ai) -> sign in -> avatar -> **Settings** -> **API Keys**.
-
-No API key? Free tools still work:
+Free tools (search, enhance, inspire) work immediately — no API key needed:
 
 ```bash
 mcporter call creative-toolkit.search_gallery query="cyberpunk"
 mcporter call creative-toolkit.enhance_prompt brief="a cat in space" style="realistic"
 ```
+
+To unlock image generation, configure **one** of these providers:
+
+| Provider | Config | What you need |
+|----------|--------|---------------|
+| **MeiGen Cloud** | `MEIGEN_API_TOKEN` | Token from [meigen.ai](https://www.meigen.ai) (avatar → Settings → API Keys) |
+| **Local ComfyUI** | `comfyuiUrl` | A running ComfyUI instance — no external API needed |
+| **Any OpenAI-compatible API** | `openaiApiKey` + `openaiBaseUrl` + `openaiModel` | Your own key from Together AI, Fireworks AI, etc. |
+
+Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an `"env"` block to the mcporter config above. See `references/providers.md` for details.
 
 ## Available Tools
 
@@ -63,41 +62,78 @@ mcporter call creative-toolkit.enhance_prompt brief="a cat in space" style="real
 | `comfyui_workflow` | List, view, import, modify, and delete ComfyUI workflow templates. Adjust steps, CFG scale, sampler, and checkpoint without editing JSON. |
 | `manage_preferences` | Save and load user preferences (default style, aspect ratio, style notes, favorite prompts). |
 
-## Usage Patterns
+## Important Rules
 
-### Basic generation
+### Never describe generated images
+
+You **cannot see** generated images. After generation, only present the **exact** data from the tool response:
 
 ```
-Generate a product photo of a ceramic vase with morning light
+**Direction 1: Modern Minimal**
+- Image URL: https://images.meigen.art/...
+- Saved to: ~/Pictures/meigen/2026-02-08_xxxx.jpg
 ```
 
-The server picks the best provider, generates the image, and returns a URL + local file path.
+Do NOT write creative commentary about what the image "looks like".
 
-### Prompt enhancement then generation
+### Never specify model or provider
 
-For brief ideas, enhance first for much better results:
+Do NOT pass `model` or `provider` to `generate_image` unless the user explicitly asks. The server auto-selects the best available provider and model.
+
+### Always confirm before generating multiple images
+
+When the user wants multiple variations, present options first and ask which direction(s) to try. Include an "all of the above" option. Never auto-generate all variants without user confirmation.
+
+---
+
+## Workflow Modes
+
+### Mode 1: Single Image
+
+User wants one image. Write a prompt (or call `enhance_prompt` if the description is brief), generate, present URL + path.
+
+### Mode 2: Prompt Enhancement + Generation
+
+For brief ideas (under ~30 words, lacking visual details), enhance first:
 
 ```
 1. enhance_prompt brief="futuristic city" style="realistic"
-   -> Returns detailed prompt with camera lens, lighting setup, atmospheric effects
+   -> Returns detailed prompt with camera lens, lighting, atmospheric effects
 
 2. generate_image prompt="<enhanced prompt>" aspectRatio="16:9"
-   -> Generates with the enhanced prompt
 ```
 
-### Style reference workflow
+### Mode 3: Parallel Generation (2+ images)
 
-Use an existing image to guide the visual style of generation:
+User needs multiple variations — different directions, styles, or concepts.
 
-```
-1. upload_reference_image filePath="~/Desktop/my-logo.png"
-   -> Compresses and returns a temporary URL (expires in 24 hours)
+1. Plan directions, present as a table
+2. Ask user which direction(s) to try
+3. Write distinct prompts for each — don't just tweak one word
+4. Generate selected directions (max 4 parallel for API providers, 1 at a time for ComfyUI)
+5. Present URLs + paths
 
-2. generate_image prompt="coffee mug mockup with this logo" referenceImages=["<url>"]
-   -> Generates using the reference for style guidance
-```
+### Mode 4: Multi-Step Creative (base + extensions)
 
-### Gallery exploration
+User wants a base design plus derivatives (e.g., "design a logo and make mockups").
+
+1. Plan 3-5 directions, ask user which to try
+2. Generate selected direction(s)
+3. Present results, ask user to approve or try another
+4. Plan extensions using the approved Image URL as `referenceImages`
+5. Generate extensions
+
+Never jump from plan to generating everything at once.
+
+### Mode 5: Edit/Modify Existing Image
+
+User provides an image and asks for changes (add text, change background, etc.).
+
+- Upload the reference image (if local), then generate with a **short, literal prompt** describing ONLY the edit
+- The reference image carries all visual context — do NOT re-describe the original image
+- Example prompt: "Add the text 'meigen.ai' at the bottom of this image"
+
+### Mode 6: Inspiration Search
 
 ```
 1. search_gallery query="dreamy portrait with soft light"
@@ -107,7 +143,20 @@ Use an existing image to guide the visual style of generation:
    -> Get full prompt text — copy and modify for your own generation
 ```
 
-### ComfyUI workflows
+### Mode 7: Reference Image Generation
+
+Use an existing image to guide visual style:
+
+```
+1. upload_reference_image filePath="~/Desktop/my-logo.png"
+   -> Compresses and returns a temporary URL (expires in 24 hours)
+
+2. generate_image prompt="coffee mug mockup with this logo" referenceImages=["<url>"]
+```
+
+Reference image sources: gallery URLs, previous generation URLs, `upload_reference_image` for local files. ComfyUI users can pass local file paths directly — no upload needed.
+
+### Mode 8: ComfyUI Workflows
 
 ```
 1. comfyui_workflow action="list"           -> See saved workflows

@@ -1,5 +1,4 @@
 ---
-name: models
 description: >-
   List available AI models and switch the default model for this session.
   Use when user runs /meigen:models to see or change models.
@@ -12,7 +11,7 @@ Show available models and let the user switch the default for this session.
 
 ## Instructions
 
-1. Call `list_models` to get all available models and providers
+1. Call `mcp__meigen__list_models` to get all available models and providers
 2. Present results in a compact numbered list:
    - For MeiGen models: `[N] Model Name (ID: xxx) — X credits, ratios: ...`
    - For ComfyUI workflows: `[N] workflow-name — checkpoint, steps, sampler`

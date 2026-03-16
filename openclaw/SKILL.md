@@ -58,7 +58,7 @@ Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an
 | Tool | What it does |
 |------|-------------|
 | `generate_image` | Generate an image from a text prompt. Routes to the best available provider. Supports aspect ratio, seed, and reference images. |
-| `upload_reference_image` | Compress a local image (max 2MB, 2048px) and upload to temporary storage (expires in 24 hours) for use as a style reference. ComfyUI users can skip this — pass local file paths directly to `generate_image`. |
+| `upload_reference_image` | Compress a local image (max 2MB, 2048px) and upload to temporary storage (expires in 24 hours) for use as a style reference. Call this MCP tool directly — do NOT construct upload HTTP requests manually. ComfyUI users can skip this — pass local file paths directly to `generate_image`. |
 | `comfyui_workflow` | List, view, import, modify, and delete ComfyUI workflow templates. Adjust steps, CFG scale, sampler, and checkpoint without editing JSON. |
 | `manage_preferences` | Save and load user preferences (default style, aspect ratio, style notes, favorite prompts). |
 
@@ -145,7 +145,7 @@ User provides an image and asks for changes (add text, change background, etc.).
 
 ### Mode 7: Reference Image Generation
 
-Use an existing image to guide visual style:
+Use an existing image to guide visual style. You MUST call the MCP tool directly — do NOT construct HTTP requests manually.
 
 ```
 1. upload_reference_image filePath="~/Desktop/my-logo.png"
@@ -155,6 +155,8 @@ Use an existing image to guide visual style:
 ```
 
 Reference image sources: gallery URLs, previous generation URLs, `upload_reference_image` for local files. ComfyUI users can pass local file paths directly — no upload needed.
+
+**Important**: If `upload_reference_image` fails or is unavailable, do NOT attempt to replicate its behavior by calling HTTP endpoints yourself. Instead, tell the user to upload the image manually at [meigen.ai](https://www.meigen.ai) and provide the URL, or use the image URL directly if it's already online.
 
 ### Mode 8: ComfyUI Workflows
 

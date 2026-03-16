@@ -17,6 +17,9 @@
 **Reference image rejected**
 -> Reference images require accessible URLs. Use `upload_reference_image` to prepare local files first. ComfyUI users can pass local file paths directly.
 
+**Upload returns "Not found" or path error (e.g. `/upload/reference`)**
+-> You must call the `upload_reference_image` MCP tool directly — do NOT construct HTTP requests to upload endpoints yourself. The tool handles compression, presigning, and uploading internally. If the tool is unavailable, ask the user to upload the image manually at [meigen.ai](https://www.meigen.ai) and provide the URL.
+
 **Reference image URL expired**
 -> URLs from `upload_reference_image` expire after 24 hours. Re-upload the image if the URL is no longer accessible.
 

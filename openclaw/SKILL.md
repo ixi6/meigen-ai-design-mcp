@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
 description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.13
+version: 1.0.14
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---

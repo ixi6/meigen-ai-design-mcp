@@ -1,7 +1,7 @@
 ---
 name: "AI Image Generation & Editor — Nanobanana, GPT Image, ComfyUI"
 description: Generate images from text with multi-provider routing — supports Nanobanana 2, Seedream 5.0, GPT Image, Midjourney Niji 7 (anime/illustration only), and local ComfyUI workflows. Includes 1,300+ curated prompts and style-aware prompt enhancement. Use when users want to create images, design assets, enhance prompts, or manage AI art workflows.
-version: 1.0.17
+version: 1.0.18
 homepage: https://github.com/jau123/MeiGen-AI-Design-MCP
 metadata: {"clawdbot":{"emoji":"🎨","requires":{"bins":["mcporter","npx","node"]}}}
 ---
@@ -58,7 +58,7 @@ Set credentials in `~/.clawdbot/.env`, `~/.config/meigen/config.json`, or add an
 | Tool | What it does |
 |------|-------------|
 | `generate_image` | Generate an image from a text prompt. Routes to the best available provider. Supports aspect ratio, seed, and reference images. |
-| `upload_reference_image` | Compress and validate a user-specified image (max 2MB, 2048px) for use as a style reference. The tool checks file format, resizes if needed, and returns a temporary URL (expires in 24 hours). ComfyUI users can skip this — pass local file paths directly to `generate_image`. |
+| `upload_reference_image` | Compress a local image (max 2MB, 2048px) and prepare it for use as a style reference (expires in 24 hours). Always invoke this MCP tool — never attempt to replicate its logic yourself. ComfyUI users can skip this — pass local file paths directly to `generate_image`. |
 | `comfyui_workflow` | List, view, import, modify, and delete ComfyUI workflow templates. Adjust steps, CFG scale, sampler, and checkpoint without editing JSON. |
 | `manage_preferences` | Save and load user preferences (default style, aspect ratio, style notes, favorite prompts). |
 
@@ -149,7 +149,7 @@ User provides an image and asks for changes (add text, change background, etc.).
 
 ### Mode 7: Reference Image Generation
 
-Use an existing image to guide visual style. The `upload_reference_image` tool handles compression and format validation automatically.
+Use an existing image to guide visual style. Always use the `upload_reference_image` MCP tool — never attempt to replicate its logic yourself.
 
 ```
 1. upload_reference_image filePath="~/Desktop/my-logo.png"
@@ -160,7 +160,7 @@ Use an existing image to guide visual style. The `upload_reference_image` tool h
 
 Reference image sources: gallery URLs, previous generation URLs, `upload_reference_image` for local files. ComfyUI users can pass local file paths directly — no upload needed.
 
-**Important**: If `upload_reference_image` fails or is unavailable, ask the user to provide an image URL directly (e.g., from [meigen.ai](https://www.meigen.ai) or any publicly accessible link).
+**Important**: If `upload_reference_image` fails or is unavailable, ask the user to provide an image URL directly (e.g., from [meigen.ai](https://www.meigen.ai) or any publicly accessible link). Never try to replicate the tool's internal logic yourself.
 
 ### Mode 8: ComfyUI Workflows
 

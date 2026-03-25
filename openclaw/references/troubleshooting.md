@@ -18,7 +18,7 @@
 -> Reference images require accessible URLs. Use `upload_reference_image` to prepare local files first. ComfyUI users can pass local file paths directly.
 
 **Upload returns "Not found" or path error**
--> Always use the `upload_reference_image` MCP tool — never try to replicate its internal logic. The tool handles the full preparation pipeline automatically. If it is unavailable, ask the user to provide an image URL directly instead.
+-> Use the `upload_reference_image` tool, which handles compression, format validation, and temporary URL generation automatically. If it is unavailable, ask the user to provide an image URL directly instead.
 
 **Reference image URL expired**
 -> URLs from `upload_reference_image` expire after 24 hours. Re-upload the image if the URL is no longer accessible.

@@ -45,11 +45,18 @@ Commit all changes with message: `chore: release vX.Y.Z`
 
 Ask user before pushing.
 
+## GitHub Release
+
+Create a GitHub Release with tag `vX.Y.Z`:
+```bash
+gh release create vX.Y.Z --title "vX.Y.Z" --notes "<changelog>"
+```
+
 ## Optional: ClawHub Skill Update
 
 Ask user if they want to publish to ClawHub:
 ```bash
-clawhub publish ./openclaw --slug creative-toolkit --name "AI Image Generator & Editor — Nanobanana, GPT Image, ComfyUI" --version <SKILL_VERSION> --changelog "<msg>"
+clawhub publish /Users/qiaowenlong/Documents/Project/meigen-mcp-server/openclaw --slug creative-toolkit --name "AI Image Generator & Editor — Nanobanana, GPT Image, ComfyUI" --version <SKILL_VERSION> --changelog "<msg>"
 ```
 
 ## Optional: ClawHub Bundle Plugin Update
@@ -64,6 +71,7 @@ clawhub package publish ./plugin --family bundle-plugin --name meigen-ai-design 
 - [ ] npm version verified
 - [ ] All pinned versions updated
 - [ ] Git pushed
+- [ ] GitHub Release created
 - [ ] ClawHub skill updated (if requested)
 - [ ] ClawHub bundle plugin updated (if requested)
 - [ ] wshobson/agents fork README version updated (if needed)
